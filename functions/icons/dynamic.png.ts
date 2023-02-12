@@ -17,22 +17,25 @@ export const onRequest: PagesFunction = async (ctx) => {
     return new Response(null, { status: 405, headers: { Allow: 'GET' } });
   }
 
-  const { members: fronters } = await fetch(
-    'https://api.pluralkit.me/v2/systems/fxyvj/fronters',
-    {
-      cf: { cacheTtl: 30, cacheEverything: true },
+  try {
+    const { members: fronters } = await fetch(
+      'https://api.pluralkit.me/v2/systems/fxyvj/fronters',
+      {
+        headers: { 'User-Agent': 'ryanccn.dev/unversioned' },
+        cf: { cacheTtl: 30, cacheEverything: true },
+      }
+    ).then((res) => res.json<Switch>());
+
+    if (!fronters.length) {
+      return fetchRelative('/icons/dynamic/ryan.png', ctx);
     }
-  ).then((res) => res.json<Switch>());
 
-  const absoluteURL = (r: string) =>
-    new URL(r, new URL(ctx.request.url).origin).toString();
-
-  if (!fronters.length) {
+    return fetchRelative(
+      `/icons/dynamic/${fronters[0].name.toLowerCase()}.png`,
+      ctx
+    );
+  } catch (e) {
+    console.error(e);
     return fetchRelative('/icons/dynamic/ryan.png', ctx);
   }
-
-  return fetchRelative(
-    `/icons/dynamic/${fronters[0].name.toLowerCase()}.png`,
-    ctx
-  );
 };
