@@ -1,0 +1,27 @@
+name: Update PluralKit profile pictures
+
+on:
+  workflow_dispatch:
+
+jobs:
+  minecraft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Update profile pictures
+        run: node ./src/utils/pluralkitProfiles.mjs
+
+      - name: Commit & push
+        uses: actions-js/push@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          message: 'chore: update PluralKit profile pictures'

@@ -27,15 +27,12 @@ export const onRequest: PagesFunction = async (ctx) => {
     ).then((res) => res.json<Switch>());
 
     if (!fronters.length) {
-      return fetchRelative('/icons/dynamic/ryan.png', ctx);
+      return fetchRelative('/icons/dynamic/default.png', ctx);
     }
 
-    return fetchRelative(
-      `/icons/dynamic/${fronters[0].name.toLowerCase()}.png`,
-      ctx
-    );
+    return fetchRelative(`/icons/dynamic/${fronters[0].id}.png`, ctx);
   } catch (e) {
     console.error(e);
-    return fetchRelative('/icons/dynamic/ryan.png', ctx);
+    return fetchRelative('/icons/dynamic/default.png', ctx);
   }
 };
