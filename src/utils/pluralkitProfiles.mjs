@@ -1,8 +1,10 @@
 import sharp from 'sharp';
 
-import { createWriteStream } from 'fs';
 import { copyFile, readdir, rm } from 'fs/promises';
-import { ofetch } from 'ofetch';
+
+import { createWriteStream } from 'fs';
+import { Readable } from 'stream';
+import { finished } from 'stream/promises';
 
 import { cyan, dim, yellow } from 'kleur/colors';
 import { join } from 'path';
@@ -20,9 +22,16 @@ await readdir(ICON_DIRECTORY).then(async (files) => {
   console.log(dim(`Deleted ${files.length} existing files`));
 });
 
-const members = await ofetch(
+const members = await fetch(
   `https://api.pluralkit.me/v2/systems/${SYSTEM_ID}/members`
-);
+).then((res) => {
+  if (!res.ok)
+    throw new Error(
+      `Error fetching ${res.url}: ${res.status} ${res.statusText}`
+    );
+
+  return res.json();
+});
 
 for (const member of members) {
   if (!member.avatar_url) {
@@ -39,14 +48,10 @@ for (const member of members) {
   const rawAvatarPath = join(ICON_DIRECTORY, `${member.id}.raw.png`);
   const avatarPath = join(ICON_DIRECTORY, `${member.id}.png`);
 
-  const res = await ofetch.native(member.avatar_url);
+  const res = await fetch(member.avatar_url);
   const fileStream = createWriteStream(rawAvatarPath);
 
-  await new Promise((resolve, reject) => {
-    res.body.pipe(fileStream);
-    res.body.on('error', reject);
-    fileStream.on('finish', resolve);
-  });
+  await finished(Readable.fromWeb(res.body).pipe(fileStream));
   fileStream.close();
 
   console.log(`Resizing ${cyan(`${member.id}.raw.png`)} to 512w`);
