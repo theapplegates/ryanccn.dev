@@ -4,12 +4,19 @@ interface Switch {
   members: { id: string; name: string }[];
 }
 
-const fetchRelative = async (
+const fetchAsset = async (
   r: string,
   ctx: EventContext<unknown, any, Record<string, unknown>>
 ) => {
   const absUrl = new URL(r, new URL(ctx.request.url).origin);
-  return fetch(absUrl);
+  const res = await ctx.env.ASSETS.fetch(absUrl);
+
+  if (!res.ok)
+    throw new Error(
+      `Error fetching ${res.url}: ${res.status} ${res.statusText}`
+    );
+
+  return res.clone();
 };
 
 export const onRequest: PagesFunction = async (ctx) => {
@@ -24,15 +31,18 @@ export const onRequest: PagesFunction = async (ctx) => {
         headers: { 'User-Agent': 'ryanccn.dev/unversioned' },
         cf: { cacheTtl: 30, cacheEverything: true },
       }
-    ).then((res) => res.json<Switch>());
+    ).then((res) => {
+      if (!res.ok) throw new Error('Failed to fetch data from PluralKit API');
+      return res.json<Switch>();
+    });
 
     if (!fronters.length) {
-      return fetchRelative('/icons/dynamic/default.png', ctx);
+      return await fetchAsset('/icons/dynamic.png', ctx);
     }
 
-    return fetchRelative(`/icons/dynamic/${fronters[0].id}.png`, ctx);
+    return await fetchAsset(`/icons/dynamic/${fronters[0].id}.png`, ctx);
   } catch (e) {
     console.error(e);
-    return fetchRelative('/icons/dynamic/default.png', ctx);
+    return await fetchAsset('/icons/dynamic.png', ctx);
   }
 };

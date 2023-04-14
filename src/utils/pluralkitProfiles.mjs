@@ -61,6 +61,6 @@ for (const member of members) {
 
   if (member.id === DEFAULT_MEMBER) {
     console.log(`Setting ${cyan(`${member.name} (${member.id})`)} as default`);
-    await copyFile(avatarPath, join(ICON_DIRECTORY, `default.png`));
+    await copyFile(avatarPath, join(ICON_DIRECTORY, `../dynamic.png`));
   }
 }
