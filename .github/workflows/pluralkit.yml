@@ -16,7 +16,7 @@ jobs:
           node-version: 19
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
       - name: Update profile pictures
         run: node ./src/utils/pluralkitProfiles.mjs
 
